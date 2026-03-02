@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 export interface Column<T> {
   header: string;
@@ -9,18 +9,50 @@ export interface Column<T> {
 interface TableProps<T> {
   columns: Column<T>[];
   data: T[];
-  pageSize?: number;
+  pageSizeOptions?: number[]; // new
+  defaultPageSize?: number; // new
 }
 
-export function Table<T extends object>({ columns, data, pageSize = 5 }: TableProps<T>) {
+export function Table<T extends object>({
+  columns,
+  data,
+  pageSizeOptions = [5, 10, 20, 50],
+  defaultPageSize = 5,
+}: TableProps<T>) {
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(defaultPageSize);
 
   const totalPages = Math.ceil(data.length / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const currentData = data.slice(startIndex, startIndex + pageSize);
+
+  const currentData = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return data.slice(startIndex, startIndex + pageSize);
+  }, [data, currentPage, pageSize]);
+
+  const handlePageSizeChange = (value: number) => {
+    setPageSize(value);
+    setCurrentPage(1); // reset page
+  };
 
   return (
     <div className="w-full">
+      {/* Page Size Selector */}
+      <div className="mb-4 flex items-center gap-2">
+        <span className="text-sm">Rows per page:</span>
+        <select
+          aria-label="State"
+          value={pageSize}
+          onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+          className="rounded border px-2 py-1 text-sm"
+        >
+          {pageSizeOptions.map((pageSize) => (
+            <option key={pageSize} value={pageSize}>
+              {pageSize}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <table className="w-full overflow-hidden rounded-lg border border-gray-200">
         <thead className="bg-gray-100">
           <tr>
