@@ -1,36 +1,25 @@
-import { useEffect, useState } from 'react';
-import Match from './Components/Match.tsx';
 import { type MatchType } from './types/match';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Header from './Components/HeadingSection.tsx';
+import Insert from './Components/CustomInsert.tsx';
 import Home from './Components/Home.tsx';
+import SellingReport from './Components/SellingReport.tsx';
+import ClientView from './Components/ClientView.tsx';
+import Payment from './Components/Payment.tsx';
+import Order from './Components/Order.tsx';
 
 export default function App() {
-  const [match, setMatch] = useState<MatchType | null>(null);
-  useEffect(() => {
-    fetch('/api/v4/areas/2267', {
-      headers: {
-        'X-Auth-Token': import.meta.env.VITE_API_KEY,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setMatch(data))
-      .catch((err) => console.error(err));
-  }, []);
-
-  // console.log(match);
-
-  if (!match) return <p>Loading...</p>;
-
   return (
     <div>
       <BrowserRouter>
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/live" element={<h1>Live Match Page</h1>} />
-          <Route path="/clubs" element={<Match match={match} />} />
-          <Route path="/countries" element={<h1>Country List Page</h1>} />
+          <Route path="/order" element={<Order />} />
+          <Route path="/insert" element={<Insert />} />
+          <Route path="/selling" element={<SellingReport />} />
+          <Route path="/client" element={<ClientView />} />
+          <Route path="/payment" element={<Payment />} />
         </Routes>
       </BrowserRouter>
     </div>
