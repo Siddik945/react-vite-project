@@ -152,6 +152,7 @@ const ClientView = () => {
           value={date.start_date}
           onChange={handleChange}
           className="border p-2"
+          placeholder="date"
           required
         />
         <input
@@ -160,6 +161,7 @@ const ClientView = () => {
           value={date.end_date}
           onChange={handleChange}
           className="border p-2"
+          placeholder="date"
           required
         />
         <button type="submit" className="rounded bg-blue-500 px-4 py-2 text-white">

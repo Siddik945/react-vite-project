@@ -26,13 +26,13 @@ const DashboardLayout = () => {
   return (
     <div className="min-h-screen bg-slate-100">
       {/* Mobile Navbar */}
-      <header className="fixed top-0 right-0 left-0 z-40 flex h-16 items-center justify-between bg-green-700 px-5 text-white shadow-md lg:hidden">
+      <header className="fixed top-0 right-0 left-0 z-40 flex h-16 items-center justify-between bg-emerald-800 px-5 text-white shadow-md lg:hidden">
         <h1 className="text-lg font-bold tracking-wide">MONSUR ENTERPRISE</h1>
 
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="rounded-md border border-white/30 px-3 py-2 text-sm font-medium"
+          className="rounded-md border border-white/30 px-3 py-2 text-sm font-medium hover:bg-white/10"
         >
           Menu
         </button>
@@ -48,17 +48,21 @@ const DashboardLayout = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-screen w-72 transform bg-green-700 text-white shadow-xl transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed top-0 left-0 z-50 h-screen w-72 transform bg-emerald-900 text-white shadow-xl transition-transform duration-300 lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex h-20 items-center justify-between border-b border-white/10 px-6">
           <div>
-            <h1 className="text-xl font-bold">MONSUR ENTERPRISE</h1>
-            <p className="text-sm text-green-100">Business Management Panel</p>
+            <h1 className="text-xl font-bold tracking-wide">MONSUR ENTERPRISE</h1>
+            <p className="text-sm text-emerald-200">Business Management Panel</p>
           </div>
 
-          <button type="button" onClick={() => setIsOpen(false)} className="text-2xl lg:hidden">
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            className="text-2xl text-white lg:hidden"
+          >
             ×
           </button>
         </div>
@@ -70,8 +74,10 @@ const DashboardLayout = () => {
               to={item.path}
               onClick={() => setIsOpen(false)}
               className={({ isActive }) =>
-                `block rounded-lg px-4 py-3 text-sm font-medium transition ${
-                  isActive ? 'bg-white text-green-800 shadow' : 'text-green-50 hover:bg-green-700'
+                `block rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? 'bg-white text-emerald-900 shadow-md'
+                    : 'text-emerald-100 hover:bg-emerald-700 hover:text-white'
                 }`
               }
             >
@@ -84,7 +90,7 @@ const DashboardLayout = () => {
       {/* Main Area */}
       <main className="pt-16 lg:ml-72 lg:pt-20">
         {/* Desktop Navbar */}
-        <header className="fixed top-0 right-0 left-72 z-30 hidden h-20 items-center justify-between border-b bg-white px-8 shadow-sm lg:flex">
+        <header className="fixed top-0 right-0 left-72 z-30 hidden h-20 items-center justify-between border-b border-slate-200 bg-white px-8 shadow-sm lg:flex">
           <nav className="flex items-center gap-2">
             {navbarItems.map((item) => (
               <NavLink
@@ -93,8 +99,8 @@ const DashboardLayout = () => {
                 className={({ isActive }) =>
                   `rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-green-700 text-white shadow'
-                      : 'text-slate-600 hover:bg-green-100 hover:text-green-700'
+                      ? 'bg-emerald-700 text-white shadow-md'
+                      : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'
                   }`
                 }
               >
@@ -103,14 +109,14 @@ const DashboardLayout = () => {
             ))}
           </nav>
 
-          <div className="rounded-full bg-green-100 px-4 py-2 text-sm font-semibold text-green-800">
+          <div className="rounded-full bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-800">
             Admin
           </div>
         </header>
 
         {/* Page Content */}
         <section className="p-5 lg:p-8">
-          <div className="min-h-[calc(100vh-8rem)] rounded-2xl bg-white p-5 shadow-sm lg:p-8">
+          <div className="min-h-[calc(100vh-8rem)] rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:p-8">
             <Outlet />
           </div>
         </section>
