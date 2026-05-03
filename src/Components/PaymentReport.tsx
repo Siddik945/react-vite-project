@@ -5,29 +5,16 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 interface filterItem {
+  company: string;
   start_date: string;
   end_date: string;
 }
 
-interface dataItem {
-  id: number;
-  date: string;
-  method: string;
-  amount: number;
-}
-interface ReportItem {
-  data: dataItem[];
-}
-
-const Payment = () => {
+const PaymentReport = () => {
   const [price, setPrice] = useState(0);
   const [payment, setPayment] = useState(0);
   const [totalDue, setTotalDue] = useState(0);
   const [isActive, setIsActive] = useState(false);
-  const [isDetails, setIsDetails] = useState(false);
-  const [report, setReport] = useState<ReportItem>({
-    data: [],
-  });
 
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -37,6 +24,7 @@ const Payment = () => {
   const itemsPerPage = 7;
 
   const [date, setDate] = useState<filterItem>({
+    company: '',
     start_date: '',
     end_date: '',
   });
@@ -52,7 +40,7 @@ const Payment = () => {
 
     try {
       const query = `?startDate=${date.start_date}&endDate=${date.end_date}`;
-      const res = await fetch(`http://localhost:5000/getPayments${query}`);
+      const res = await fetch(`http://localhost:3000/getPayments${query}`);
       const data = await res.json();
       setReport(data);
       //   console.log(data);
@@ -135,61 +123,17 @@ const Payment = () => {
     return `${day}-${month}-${year}`;
   };
 
-  const [form, setForm] = useState({
-    date: '',
-    method: '',
-    amount: '',
-  });
-
-  const paymentHandleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const paymentHandleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      const res = await fetch('http://localhost:5000/createPayment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: form.date,
-          method: form.method,
-          amount: Number(form.amount),
-        }),
-      });
-
-      const data = await res.json();
-      // console.log(data);
-
-      alert('Payment Added ✅');
-
-      // reset form
-      setForm({
-        date: '',
-        method: '',
-        amount: '',
-      });
-    } catch (error) {
-      console.error(error);
-      alert('Error ❌');
-    }
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch Total Price
-        const priceRes = await fetch('http://localhost:5000/totalPrice');
+        const priceRes = await fetch('http://localhost:3000/totalPrice');
         const priceData = await priceRes.json();
         const totalPrice = Number(priceData.total_price || 0);
         setPrice(totalPrice);
 
         // Fetch Payment Sum
-        const paymentRes = await fetch('http://localhost:5000/paymentSum');
+        const paymentRes = await fetch('http://localhost:3000/paymentSum');
         const paymentData = await paymentRes.json();
         const totalPayment = Number(paymentData.total_payment || 0);
         setPayment(totalPayment);
@@ -205,28 +149,43 @@ const Payment = () => {
     fetchData();
   }, []);
 
-  const insertHandleClick = () => {
-    if (isActive) {
-      setIsActive(false);
-    } else {
-      setIsActive(true);
-    }
-  };
-  const detailsHandleClick = () => {
-    if (!isDetails) {
-      setIsDetails(true);
-    } else if (isDetails && !isSubmit) {
-      setIsDetails(false);
-    }
-  };
-
   return (
-    <div className="mx-auto max-w-6xl px-4 pt-20 text-center">
+    <div className="mx-auto max-w-6xl px-4 text-center">
       <h2 className="mb-4 text-2xl font-bold">Payment Summary</h2>
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="mb-6 flex flex-wrap justify-center gap-4">
+        <input
+          type="company"
+          name="company"
+          onChange={handleChange}
+          className="border p-2"
+          placeholder="company"
+          required
+        />
+        <input
+          type="date"
+          name="start_date"
+          onChange={handleChange}
+          className="border p-2"
+          placeholder="date"
+          required
+        />
+        <input
+          type="date"
+          name="end_date"
+          onChange={handleChange}
+          className="border p-2"
+          placeholder="date"
+          required
+        />
+        <button className="rounded bg-blue-500 px-4 py-2 text-white">
+          {loading ? 'Loading...' : 'Submit'}
+        </button>
+      </form>
 
-      <p className="text-lg">Total Price: {price}</p>
-      <p className="text-lg">Payment: {payment}</p>
-      <p className="text-xl font-semibold text-red-500">Total Due: {totalDue}</p>
+      <p className="text-left text-lg">Total Price: {price}</p>
+      <p className="text-left text-lg">Payment: {payment}</p>
+      <p className="mb-4 text-left text-xl font-semibold text-red-500">Total Due: {totalDue}</p>
 
       {/* Export Buttons */}
       {isSubmit && (
@@ -240,113 +199,34 @@ const Payment = () => {
         </div>
       )}
 
-      <button
-        className="m-2.5 rounded bg-blue-500 px-4 py-2 text-white"
-        onClick={insertHandleClick}
-      >
-        Insert Payment
-      </button>
-      <button
-        className="m-2.5 rounded bg-blue-500 px-4 py-2 text-white"
-        onClick={detailsHandleClick}
-      >
-        Details Payment
-      </button>
-
-      {isActive && (
-        <form onSubmit={paymentHandleSubmit} className="mb-6 flex flex-wrap justify-center gap-4">
-          {/* Date */}
-          <input
-            type="date"
-            name="date"
-            value={form.date}
-            onChange={paymentHandleChange}
-            className="border p-2"
-            required
-          />
-
-          {/* Method */}
-          <select
-            name="method"
-            value={form.method}
-            onChange={paymentHandleChange}
-            className="border p-2"
-            required
-          >
-            <option value="">Select Method</option>
-            <option value="cash">Cash</option>
-            <option value="bkash">bKash</option>
-            <option value="cheque">cheque</option>
-            <option value="bank">Bank</option>
-          </select>
-
-          {/* Amount */}
-          <input
-            type="number"
-            name="amount"
-            value={form.amount}
-            onChange={paymentHandleChange}
-            className="border p-2"
-            placeholder="Amount"
-            required
-          />
-
-          {/* Button */}
-          <button className="rounded bg-blue-500 px-4 py-2 text-white">Add Payment</button>
-        </form>
-      )}
-
       {/* Form */}
-      {isDetails && (
-        <form onSubmit={handleSubmit} className="mb-6 flex flex-wrap justify-center gap-4">
-          <input
-            type="date"
-            name="start_date"
-            onChange={handleChange}
-            className="border p-2"
-            placeholder="date"
-            required
-          />
-          <input
-            type="date"
-            name="end_date"
-            onChange={handleChange}
-            className="border p-2"
-            placeholder="date"
-            required
-          />
-          <button className="rounded bg-blue-500 px-4 py-2 text-white">
-            {loading ? 'Loading...' : 'Submit'}
-          </button>
-        </form>
-      )}
 
       {/* Table */}
-      {isSubmit && (
-        <div className="overflow-x-auto">
-          <table className="w-full border text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                {['#', 'Date', 'Method', 'Amount'].map((h) => (
-                  <th key={h} className="border px-2 py-1">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {currentData.map((r, i) => (
-                <tr key={r.id}>
-                  <td className="border px-2">{i + 1}</td>
-                  <td className="border px-2">{formatDate(r.date)}</td>
-                  <td className="border px-2">{r.method}</td>
-                  <td className="border px-2">{r.amount}</td>
-                </tr>
+      {/* {isSubmit && ( */}
+      <div className="overflow-x-auto">
+        <table className="w-full border text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              {['#', 'Date', 'Method', 'Amount'].map((h) => (
+                <th key={h} className="border px-2 py-1">
+                  {h}
+                </th>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+            </tr>
+          </thead>
+          <tbody>
+            {currentData.map((r, i) => (
+              <tr key={r.id}>
+                <td className="border px-2">{i + 1}</td>
+                <td className="border px-2">{formatDate(r.date)}</td>
+                <td className="border px-2">{r.method}</td>
+                <td className="border px-2">{r.amount}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {/* )} */}
       {/* Pagination */}
       {currentData.length > 0 && (
         <div className="mt-6 flex items-center justify-center gap-3">
@@ -380,4 +260,4 @@ const Payment = () => {
   );
 };
 
-export default Payment;
+export default PaymentReport;

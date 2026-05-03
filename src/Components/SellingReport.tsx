@@ -162,7 +162,7 @@ const SellingReport = () => {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pt-20">
+    <div className="mx-auto max-w-6xl px-4">
       {/* Form */}
       <form onSubmit={handleSubmit} className="mb-6 flex flex-wrap justify-center gap-4">
         <input
