@@ -25,25 +25,27 @@ const Companies = () => {
   });
 
   const [editId, setEditId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
   const fetchCompanies = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      // console.log(token);
+
       const response = await fetch('http://localhost:3000/companies', {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
-      const data = await response.json();
 
-      // Token expired or missing, redirect to login
       if (response.status === 401) {
         window.location.href = '/';
+        return;
       }
+
+      const data = await response.json();
 
       if (Array.isArray(data)) {
         setCompanies(data);
@@ -61,6 +63,27 @@ const Companies = () => {
   useEffect(() => {
     fetchCompanies();
   }, []);
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      address: '',
+      contact: '',
+      email: '',
+    });
+    setEditId(null);
+  };
+
+  const openCreateModal = () => {
+    resetForm();
+    setMessage('');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    resetForm();
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -83,8 +106,8 @@ const Companies = () => {
         : 'http://localhost:3000/companies';
 
       const method = editId ? 'PUT' : 'POST';
-
       const token = localStorage.getItem('access_token');
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -96,6 +119,7 @@ const Companies = () => {
 
       if (response.status === 401) {
         window.location.href = '/';
+        return;
       }
 
       const data = await response.json();
@@ -106,14 +130,8 @@ const Companies = () => {
 
       setMessage(editId ? 'Company updated successfully.' : 'Company created successfully.');
 
-      setFormData({
-        name: '',
-        address: '',
-        contact: '',
-        email: '',
-      });
-
-      setEditId(null);
+      resetForm();
+      setIsModalOpen(false);
       fetchCompanies();
     } catch (error) {
       console.error(error);
@@ -131,6 +149,8 @@ const Companies = () => {
       contact: company.contact,
       email: company.email,
     });
+    setMessage('');
+    setIsModalOpen(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -140,6 +160,7 @@ const Companies = () => {
 
     try {
       const token = localStorage.getItem('access_token');
+
       const response = await fetch(`http://localhost:3000/companies/${id}`, {
         method: 'DELETE',
         headers: {
@@ -147,6 +168,11 @@ const Companies = () => {
           'Content-Type': 'application/json',
         },
       });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
 
       const data = await response.json();
 
@@ -162,96 +188,21 @@ const Companies = () => {
     }
   };
 
-  const handleCancelEdit = () => {
-    setEditId(null);
-    setFormData({
-      name: '',
-      address: '',
-      contact: '',
-      email: '',
-    });
-  };
-
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-slate-800">
-        {editId ? 'Update Company' : 'Create Company'}
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-slate-800">Company List</h1>
 
-      <form onSubmit={handleSubmit} className="mb-8 max-w-2xl space-y-5">
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">Company Name</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Monsur Enterprise"
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
+        <button
+          type="button"
+          onClick={openCreateModal}
+          className="rounded-lg bg-green-700 px-5 py-2 font-semibold text-white transition hover:bg-green-800"
+        >
+          Create
+        </button>
+      </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">Address</label>
-          <textarea
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            placeholder="123 Main St, Dhaka"
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">Contact</label>
-          <input
-            type="text"
-            name="contact"
-            value={formData.contact}
-            onChange={handleChange}
-            placeholder="Contact-0123456789"
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">Email</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="info@monsur.com"
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-          >
-            {loading ? 'Saving...' : editId ? 'Update Company' : 'Create Company'}
-          </button>
-
-          {editId && (
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              className="rounded-lg bg-slate-500 px-6 py-3 font-semibold text-white hover:bg-slate-600"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-
-        {message && <p className="text-sm font-medium text-slate-700">{message}</p>}
-      </form>
+      {message && <p className="mb-4 text-sm font-medium text-slate-700">{message}</p>}
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -291,9 +242,108 @@ const Companies = () => {
                 </td>
               </tr>
             ))}
+
+            {companies.length === 0 && (
+              <tr>
+                <td colSpan={5} className="p-4 text-center text-slate-500">
+                  No companies found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-lg">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-800">{editId ? 'Update' : 'Create'}</h2>
+
+              <button
+                type="button"
+                onClick={closeModal}
+                className="text-2xl font-bold text-slate-500 hover:text-slate-800"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Company Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Monsur Enterprise"
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Address</label>
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  placeholder="123 Main St, Dhaka"
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Contact</label>
+                <input
+                  type="text"
+                  name="contact"
+                  value={formData.contact}
+                  onChange={handleChange}
+                  placeholder="Contact-0123456789"
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="info@monsur.com"
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="rounded-lg bg-slate-500 px-6 py-3 font-semibold text-white hover:bg-slate-600"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  {loading ? 'Saving...' : editId ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

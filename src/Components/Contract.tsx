@@ -49,6 +49,7 @@ const Contract = () => {
   });
 
   const [editId, setEditId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -58,72 +59,124 @@ const Contract = () => {
     return [];
   };
 
-  const fetchContracts = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/contracts', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+  const resetForm = () => {
+    setFormData({
+      date: '',
+      companyId: '',
+      siteId: '',
+      productCategoriesId: '',
+      rate: '',
     });
-    const data = await response.json();
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+    setEditId(null);
+    setFilteredSites([]);
+  };
+
+  const openCreateModal = () => {
+    resetForm();
+    setMessage('');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    resetForm();
+  };
+
+  const fetchContracts = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+
+      const response = await fetch('http://localhost:3000/contracts', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setContracts(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load contracts');
     }
-    setContracts(getArray(data));
   };
 
   const fetchCompanies = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/companies', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    const data = await response.json();
+    try {
+      const token = localStorage.getItem('access_token');
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+      const response = await fetch('http://localhost:3000/companies', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setCompanies(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load companies');
     }
-    setCompanies(getArray(data));
   };
 
   const fetchSites = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/sites', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    const data = await response.json();
+    try {
+      const token = localStorage.getItem('access_token');
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+      const response = await fetch('http://localhost:3000/sites', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setSites(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load sites');
     }
-    setSites(getArray(data));
   };
 
   const fetchCategories = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/product-categories', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    const data = await response.json();
+    try {
+      const token = localStorage.getItem('access_token');
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+      const response = await fetch('http://localhost:3000/product-categories', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setCategories(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load categories');
     }
-    setCategories(getArray(data));
   };
 
   useEffect(() => {
@@ -156,18 +209,6 @@ const Contract = () => {
     }));
   };
 
-  const resetForm = () => {
-    setFormData({
-      date: '',
-      companyId: '',
-      siteId: '',
-      productCategoriesId: '',
-      rate: '',
-    });
-
-    setFilteredSites([]);
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -180,10 +221,12 @@ const Contract = () => {
         : 'http://localhost:3000/contracts';
 
       const method = editId ? 'PUT' : 'POST';
+      const token = localStorage.getItem('access_token');
 
       const response = await fetch(url, {
         method,
         headers: {
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -195,6 +238,11 @@ const Contract = () => {
         }),
       });
 
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
       const data = await response.json();
 
       if (!response.ok) {
@@ -204,7 +252,7 @@ const Contract = () => {
       setMessage(editId ? 'Contract updated successfully.' : 'Contract created successfully.');
 
       resetForm();
-      setEditId(null);
+      setIsModalOpen(false);
       fetchContracts();
     } catch (error) {
       console.error(error);
@@ -218,7 +266,6 @@ const Contract = () => {
     setEditId(contract.id);
 
     const companySites = sites.filter((site) => site.companyId === contract.companyId);
-
     setFilteredSites(companySites);
 
     setFormData({
@@ -229,7 +276,8 @@ const Contract = () => {
       rate: String(contract.rate),
     });
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setMessage('');
+    setIsModalOpen(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -238,9 +286,20 @@ const Contract = () => {
     if (!confirmDelete) return;
 
     try {
+      const token = localStorage.getItem('access_token');
+
       const response = await fetch(`http://localhost:3000/contracts/${id}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
 
       const data = await response.json();
 
@@ -254,11 +313,6 @@ const Contract = () => {
       console.error(error);
       setMessage(error instanceof Error ? error.message : 'Something went wrong');
     }
-  };
-
-  const handleCancelEdit = () => {
-    setEditId(null);
-    resetForm();
   };
 
   const getCompanyName = (companyId: number) => {
@@ -275,138 +329,19 @@ const Contract = () => {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-slate-800">
-        {editId ? 'Update Contract' : 'Create Contract'}
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-slate-800">Contract List</h1>
 
-      <form onSubmit={handleSubmit} className="mb-8 max-w-2xl space-y-5">
-        <div>
-          <label htmlFor="date" className="mb-2 block text-sm font-medium text-slate-700">
-            Date
-          </label>
+        <button
+          type="button"
+          onClick={openCreateModal}
+          className="rounded-lg bg-green-700 px-5 py-2 font-semibold text-white transition hover:bg-green-800"
+        >
+          Create Contract
+        </button>
+      </div>
 
-          <input
-            id="date"
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="companyId" className="mb-2 block text-sm font-medium text-slate-700">
-            Company
-          </label>
-
-          <select
-            id="companyId"
-            name="companyId"
-            value={formData.companyId}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          >
-            <option value="">Select Company</option>
-
-            {companies.map((company) => (
-              <option key={company.id} value={String(company.id)}>
-                {company.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="siteId" className="mb-2 block text-sm font-medium text-slate-700">
-            Site
-          </label>
-
-          <select
-            id="siteId"
-            name="siteId"
-            value={formData.siteId}
-            onChange={handleChange}
-            required
-            disabled={!formData.companyId}
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:cursor-not-allowed disabled:bg-slate-100"
-          >
-            <option value="">{formData.companyId ? 'Select Site' : 'Select Company First'}</option>
-
-            {filteredSites.map((site) => (
-              <option key={site.id} value={String(site.id)}>
-                {site.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label
-            htmlFor="productCategoriesId"
-            className="mb-2 block text-sm font-medium text-slate-700"
-          >
-            Product Category
-          </label>
-
-          <select
-            id="productCategoriesId"
-            name="productCategoriesId"
-            value={formData.productCategoriesId}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          >
-            <option value="">Select Product Category</option>
-
-            {categories.map((category) => (
-              <option key={category.id} value={String(category.id)}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="rate" className="mb-2 block text-sm font-medium text-slate-700">
-            Rate
-          </label>
-
-          <input
-            id="rate"
-            type="number"
-            name="rate"
-            value={formData.rate}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-          >
-            {loading ? 'Saving...' : editId ? 'Update Contract' : 'Create Contract'}
-          </button>
-
-          {editId && (
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              className="rounded-lg bg-slate-500 px-6 py-3 font-semibold text-white hover:bg-slate-600"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-
-        {message && <p className="text-sm font-medium text-slate-700">{message}</p>}
-      </form>
+      {message && <p className="mb-4 text-sm font-medium text-slate-700">{message}</p>}
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -460,6 +395,156 @@ const Contract = () => {
           </tbody>
         </table>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-6">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-6 shadow-lg">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-800">
+                {editId ? 'Update Contract' : 'Create Contract'}
+              </h2>
+
+              <button
+                type="button"
+                onClick={closeModal}
+                className="text-2xl font-bold text-slate-500 hover:text-slate-800"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label htmlFor="date" className="mb-2 block text-sm font-medium text-slate-700">
+                  Date
+                </label>
+
+                <input
+                  id="date"
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="companyId"
+                  className="mb-2 block text-sm font-medium text-slate-700"
+                >
+                  Company
+                </label>
+
+                <select
+                  id="companyId"
+                  name="companyId"
+                  value={formData.companyId}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                >
+                  <option value="">Select Company</option>
+
+                  {companies.map((company) => (
+                    <option key={company.id} value={String(company.id)}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="siteId" className="mb-2 block text-sm font-medium text-slate-700">
+                  Site
+                </label>
+
+                <select
+                  id="siteId"
+                  name="siteId"
+                  value={formData.siteId}
+                  onChange={handleChange}
+                  required
+                  disabled={!formData.companyId}
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                >
+                  <option value="">
+                    {formData.companyId ? 'Select Site' : 'Select Company First'}
+                  </option>
+
+                  {filteredSites.map((site) => (
+                    <option key={site.id} value={String(site.id)}>
+                      {site.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="productCategoriesId"
+                  className="mb-2 block text-sm font-medium text-slate-700"
+                >
+                  Product Category
+                </label>
+
+                <select
+                  id="productCategoriesId"
+                  name="productCategoriesId"
+                  value={formData.productCategoriesId}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                >
+                  <option value="">Select Product Category</option>
+
+                  {categories.map((category) => (
+                    <option key={category.id} value={String(category.id)}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="rate" className="mb-2 block text-sm font-medium text-slate-700">
+                  Rate
+                </label>
+
+                <input
+                  id="rate"
+                  type="number"
+                  name="rate"
+                  value={formData.rate}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="rounded-lg bg-slate-500 px-6 py-3 font-semibold text-white hover:bg-slate-600"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  {loading ? 'Saving...' : editId ? 'Update Contract' : 'Create Contract'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

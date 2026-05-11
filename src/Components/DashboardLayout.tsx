@@ -103,6 +103,7 @@ const DashboardLayout = () => {
               <NavLink
                 key={item.name}
                 to={item.path}
+                end={item.path === '/dashboard'}
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
                   `block rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 ${

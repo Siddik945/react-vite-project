@@ -38,6 +38,7 @@ const OrderNow = () => {
   });
 
   const [editId, setEditId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -47,57 +48,97 @@ const OrderNow = () => {
     return [];
   };
 
-  const fetchSites = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/sites', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+  const resetForm = () => {
+    setFormData({
+      siteId: '',
+      categoriesId: '',
+      status: 'Pending',
+      date: '',
     });
-    const data = await response.json();
+    setEditId(null);
+  };
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+  const openCreateModal = () => {
+    resetForm();
+    setMessage('');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    resetForm();
+  };
+
+  const fetchSites = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+
+      const response = await fetch('http://localhost:3000/sites', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setSites(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load sites');
     }
-    setSites(getArray(data));
   };
 
   const fetchCategories = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/product-categories', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    try {
+      const token = localStorage.getItem('access_token');
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+      const response = await fetch('http://localhost:3000/product-categories', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setCategories(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load categories');
     }
-
-    const data = await response.json();
-    setCategories(getArray(data));
   };
 
   const fetchOrders = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/orders', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    try {
+      const token = localStorage.getItem('access_token');
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+      const response = await fetch('http://localhost:3000/orders', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setOrders(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load orders');
     }
-
-    const data = await response.json();
-    setOrders(getArray(data));
   };
 
   useEffect(() => {
@@ -127,8 +168,8 @@ const OrderNow = () => {
         : 'http://localhost:3000/orders';
 
       const method = editId ? 'PUT' : 'POST';
-
       const token = localStorage.getItem('access_token');
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -143,9 +184,9 @@ const OrderNow = () => {
         }),
       });
 
-      // Token expired or missing, redirect to login
       if (response.status === 401) {
         window.location.href = '/';
+        return;
       }
 
       const data = await response.json();
@@ -156,14 +197,8 @@ const OrderNow = () => {
 
       setMessage(editId ? 'Order updated successfully.' : 'Order created successfully.');
 
-      setFormData({
-        siteId: '',
-        categoriesId: '',
-        status: 'Pending',
-        date: '',
-      });
-
-      setEditId(null);
+      resetForm();
+      setIsModalOpen(false);
       fetchOrders();
     } catch (error) {
       console.error(error);
@@ -183,12 +218,9 @@ const OrderNow = () => {
       date: order.date?.slice(0, 10),
     });
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setMessage('');
+    setIsModalOpen(true);
   };
-
-  // const handleInsert = (order: Order) => {
-  //   console.log('Insert clicked:', order);
-  // };
 
   const handleDelete = async (id: number) => {
     const confirmDelete = window.confirm('Are you sure you want to delete this order?');
@@ -197,6 +229,7 @@ const OrderNow = () => {
 
     try {
       const token = localStorage.getItem('access_token');
+
       const response = await fetch(`http://localhost:3000/orders/${id}`, {
         method: 'DELETE',
         headers: {
@@ -205,9 +238,9 @@ const OrderNow = () => {
         },
       });
 
-      // Token expired or missing, redirect to login
       if (response.status === 401) {
         window.location.href = '/';
+        return;
       }
 
       const data = await response.json();
@@ -224,17 +257,6 @@ const OrderNow = () => {
     }
   };
 
-  const handleCancelEdit = () => {
-    setEditId(null);
-
-    setFormData({
-      siteId: '',
-      categoriesId: '',
-      status: 'Pending',
-      date: '',
-    });
-  };
-
   const getSiteName = (siteId: number) => {
     return sites.find((site) => site.id === siteId)?.name || siteId;
   };
@@ -245,108 +267,19 @@ const OrderNow = () => {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-slate-800">
-        {editId ? 'Update Order' : 'Create Order'}
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-slate-800">Order List</h1>
 
-      <form onSubmit={handleSubmit} className="mb-8 max-w-2xl space-y-5">
-        <div>
-          <label htmlFor="siteId" className="mb-2 block text-sm font-medium text-slate-700">
-            Site
-          </label>
-          <select
-            id="siteId"
-            name="siteId"
-            value={formData.siteId}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          >
-            <option value="">Select Site</option>
-            {sites.map((site) => (
-              <option key={site.id} value={String(site.id)}>
-                {site.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <button
+          type="button"
+          onClick={openCreateModal}
+          className="rounded-lg bg-green-700 px-5 py-2 font-semibold text-white transition hover:bg-green-800"
+        >
+          Create Order
+        </button>
+      </div>
 
-        <div>
-          <label htmlFor="categoriesId" className="mb-2 block text-sm font-medium text-slate-700">
-            Product Category
-          </label>
-          <select
-            id="categoriesId"
-            name="categoriesId"
-            value={formData.categoriesId}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          >
-            <option value="">Select Category</option>
-            {categories.map((category) => (
-              <option key={category.id} value={String(category.id)}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="date" className="mb-2 block text-sm font-medium text-slate-700">
-            Order Date
-          </label>
-          <input
-            id="date"
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="status" className="mb-2 block text-sm font-medium text-slate-700">
-            Status
-          </label>
-          <select
-            id="status"
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          >
-            <option value="Pending">Pending</option>
-            <option value="Running">Running</option>
-            <option value="Completed">Completed</option>
-          </select>
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-          >
-            {loading ? 'Saving...' : editId ? 'Update Order' : 'Create Order'}
-          </button>
-
-          {editId && (
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              className="rounded-lg bg-slate-500 px-6 py-3 font-semibold text-white hover:bg-slate-600"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-
-        {message && <p className="text-sm font-medium text-slate-700">{message}</p>}
-      </form>
+      {message && <p className="mb-4 text-sm font-medium text-slate-700">{message}</p>}
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -363,7 +296,6 @@ const OrderNow = () => {
           <tbody>
             {orders.map((order) => {
               const isCompleted = order.status === 'Completed';
-
               const textClass = isCompleted ? 'p-3 text-slate-400 line-through' : 'p-3';
 
               return (
@@ -404,6 +336,124 @@ const OrderNow = () => {
           </tbody>
         </table>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-6">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-6 shadow-lg">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-800">
+                {editId ? 'Update Order' : 'Create Order'}
+              </h2>
+
+              <button
+                type="button"
+                onClick={closeModal}
+                className="text-2xl font-bold text-slate-500 hover:text-slate-800"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label htmlFor="siteId" className="mb-2 block text-sm font-medium text-slate-700">
+                  Site
+                </label>
+                <select
+                  id="siteId"
+                  name="siteId"
+                  value={formData.siteId}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                >
+                  <option value="">Select Site</option>
+                  {sites.map((site) => (
+                    <option key={site.id} value={String(site.id)}>
+                      {site.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="categoriesId"
+                  className="mb-2 block text-sm font-medium text-slate-700"
+                >
+                  Product Category
+                </label>
+                <select
+                  id="categoriesId"
+                  name="categoriesId"
+                  value={formData.categoriesId}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={String(category.id)}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="date" className="mb-2 block text-sm font-medium text-slate-700">
+                  Order Date
+                </label>
+                <input
+                  id="date"
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="status" className="mb-2 block text-sm font-medium text-slate-700">
+                  Status
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Running">Running</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="rounded-lg bg-slate-500 px-6 py-3 font-semibold text-white hover:bg-slate-600"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  {loading ? 'Saving...' : editId ? 'Update Order' : 'Create Order'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

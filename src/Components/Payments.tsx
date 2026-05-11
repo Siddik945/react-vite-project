@@ -38,6 +38,7 @@ const Payments = () => {
   });
 
   const [editId, setEditId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -47,56 +48,97 @@ const Payments = () => {
     return [];
   };
 
-  const fetchCompanies = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/companies', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+  const resetForm = () => {
+    setFormData({
+      companyId: '',
+      methodId: '',
+      date: '',
+      amount: '',
     });
-    const data = await response.json();
+    setEditId(null);
+  };
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+  const openCreateModal = () => {
+    resetForm();
+    setMessage('');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    resetForm();
+  };
+
+  const fetchCompanies = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+
+      const response = await fetch('http://localhost:3000/companies', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setCompanies(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load companies');
     }
-    setCompanies(getArray(data));
   };
 
   const fetchMethods = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/methods', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    try {
+      const token = localStorage.getItem('access_token');
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+      const response = await fetch('http://localhost:3000/methods', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setMethods(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load payment methods');
     }
-
-    const data = await response.json();
-    setMethods(getArray(data));
   };
 
   const fetchPayments = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/payments', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    try {
+      const token = localStorage.getItem('access_token');
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+      const response = await fetch('http://localhost:3000/payments', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setPayments(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load payments');
     }
-    const data = await response.json();
-    setPayments(getArray(data));
   };
 
   useEffect(() => {
@@ -114,15 +156,6 @@ const Payments = () => {
     }));
   };
 
-  const resetForm = () => {
-    setFormData({
-      companyId: '',
-      methodId: '',
-      date: '',
-      amount: '',
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -135,13 +168,13 @@ const Payments = () => {
         : 'http://localhost:3000/payments';
 
       const method = editId ? 'PUT' : 'POST';
-
       const token = localStorage.getItem('access_token');
+
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           companyId: Number(formData.companyId),
@@ -150,6 +183,11 @@ const Payments = () => {
           amount: Number(formData.amount),
         }),
       });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
 
       const data = await response.json();
 
@@ -160,7 +198,7 @@ const Payments = () => {
       setMessage(editId ? 'Payment updated successfully.' : 'Payment created successfully.');
 
       resetForm();
-      setEditId(null);
+      setIsModalOpen(false);
       fetchPayments();
     } catch (error) {
       console.error(error);
@@ -180,7 +218,8 @@ const Payments = () => {
       amount: String(payment.amount),
     });
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setMessage('');
+    setIsModalOpen(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -190,16 +229,18 @@ const Payments = () => {
 
     try {
       const token = localStorage.getItem('access_token');
+
       const response = await fetch(`http://localhost:3000/payments/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
 
-      // Token expired or missing, redirect to login
       if (response.status === 401) {
         window.location.href = '/';
+        return;
       }
 
       const data = await response.json();
@@ -216,11 +257,6 @@ const Payments = () => {
     }
   };
 
-  const handleCancelEdit = () => {
-    setEditId(null);
-    resetForm();
-  };
-
   const getCompanyName = (companyId: number) => {
     return companies.find((company) => company.id === companyId)?.name || companyId;
   };
@@ -231,106 +267,19 @@ const Payments = () => {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-slate-800">
-        {editId ? 'Update Payment' : 'Create Payment'}
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-slate-800">Payment List</h1>
 
-      <form onSubmit={handleSubmit} className="mb-8 max-w-2xl space-y-5">
-        <div>
-          <label htmlFor="companyId" className="mb-2 block text-sm font-medium text-slate-700">
-            Company
-          </label>
-          <select
-            id="companyId"
-            name="companyId"
-            value={formData.companyId}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          >
-            <option value="">Select Company</option>
-            {companies.map((company) => (
-              <option key={company.id} value={String(company.id)}>
-                {company.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <button
+          type="button"
+          onClick={openCreateModal}
+          className="rounded-lg bg-green-700 px-5 py-2 font-semibold text-white transition hover:bg-green-800"
+        >
+          Create Payment
+        </button>
+      </div>
 
-        <div>
-          <label htmlFor="methodId" className="mb-2 block text-sm font-medium text-slate-700">
-            Payment Method
-          </label>
-          <select
-            id="methodId"
-            name="methodId"
-            value={formData.methodId}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          >
-            <option value="">Select Method</option>
-            {methods.map((method) => (
-              <option key={method.id} value={String(method.id)}>
-                {method.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="date" className="mb-2 block text-sm font-medium text-slate-700">
-            Payment Date
-          </label>
-          <input
-            id="date"
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium text-slate-700">
-            Amount
-          </label>
-          <input
-            id="amount"
-            type="number"
-            name="amount"
-            value={formData.amount}
-            onChange={handleChange}
-            placeholder="0"
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-          >
-            {loading ? 'Saving...' : editId ? 'Update Payment' : 'Create Payment'}
-          </button>
-
-          {editId && (
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              className="rounded-lg bg-slate-500 px-6 py-3 font-semibold text-white hover:bg-slate-600"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-
-        {message && <p className="text-sm font-medium text-slate-700">{message}</p>}
-      </form>
+      {message && <p className="mb-4 text-sm font-medium text-slate-700">{message}</p>}
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -382,6 +331,126 @@ const Payments = () => {
           </tbody>
         </table>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-6">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-6 shadow-lg">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-800">
+                {editId ? 'Update Payment' : 'Create Payment'}
+              </h2>
+
+              <button
+                type="button"
+                onClick={closeModal}
+                className="text-2xl font-bold text-slate-500 hover:text-slate-800"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label
+                  htmlFor="companyId"
+                  className="mb-2 block text-sm font-medium text-slate-700"
+                >
+                  Company
+                </label>
+
+                <select
+                  id="companyId"
+                  name="companyId"
+                  value={formData.companyId}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                >
+                  <option value="">Select Company</option>
+                  {companies.map((company) => (
+                    <option key={company.id} value={String(company.id)}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="methodId" className="mb-2 block text-sm font-medium text-slate-700">
+                  Payment Method
+                </label>
+
+                <select
+                  id="methodId"
+                  name="methodId"
+                  value={formData.methodId}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                >
+                  <option value="">Select Method</option>
+                  {methods.map((method) => (
+                    <option key={method.id} value={String(method.id)}>
+                      {method.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="date" className="mb-2 block text-sm font-medium text-slate-700">
+                  Payment Date
+                </label>
+
+                <input
+                  id="date"
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="amount" className="mb-2 block text-sm font-medium text-slate-700">
+                  Amount
+                </label>
+
+                <input
+                  id="amount"
+                  type="number"
+                  name="amount"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  placeholder="0"
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="rounded-lg bg-slate-500 px-6 py-3 font-semibold text-white hover:bg-slate-600"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  {loading ? 'Saving...' : editId ? 'Update Payment' : 'Create Payment'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

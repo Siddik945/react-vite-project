@@ -41,29 +41,23 @@ type Contract = {
 
 type ProductDetailsType = {
   id: number;
-
   orderId: number;
   companyId: number;
   siteId: number;
   categoriesId: number;
   contractId: number;
-
   date: string;
   challanNo: string;
-
   buyingQuantity: number;
   buyingPricePerCft: number;
   rentCost: number;
   labourCost: number;
   otherCost: number;
-
   sellingQuantity: number;
   status: string;
-
   totalPrice: number;
   totalCost: number;
   profit: number;
-
   company?: Company;
   site?: Site;
   category?: Category;
@@ -95,7 +89,6 @@ const ProductDetails = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-
   const [filteredContracts, setFilteredContracts] = useState<Contract[]>([]);
 
   const [formData, setFormData] = useState<ProductDetailsFormData>({
@@ -116,6 +109,7 @@ const ProductDetails = () => {
   });
 
   const [editId, setEditId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [detailsData, setDetailsData] = useState<ProductDetailsType | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -126,107 +120,181 @@ const ProductDetails = () => {
     return [];
   };
 
-  const fetchProductDetails = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/product-details', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+  const resetForm = () => {
+    setFormData({
+      orderId: '',
+      date: '',
+      companyId: '',
+      siteId: '',
+      categoriesId: '',
+      contractId: '',
+      challanNo: '',
+      buyingQuantity: '',
+      buyingPricePerCft: '',
+      rentCost: '',
+      labourCost: '',
+      otherCost: '',
+      sellingQuantity: '',
+      status: '',
     });
-    const data = await response.json();
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+    setEditId(null);
+    setFilteredContracts([]);
+  };
+
+  const openCreateModal = () => {
+    resetForm();
+    setMessage('');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    resetForm();
+  };
+
+  const fetchProductDetails = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+
+      const response = await fetch('http://localhost:3000/product-details', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setProductDetails(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load product details');
     }
-    setProductDetails(getArray(data));
   };
 
   const fetchCompanies = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/companies', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    const data = await response.json();
-    
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+    try {
+      const token = localStorage.getItem('access_token');
+
+      const response = await fetch('http://localhost:3000/companies', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setCompanies(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load companies');
     }
-    setCompanies(getArray(data));
   };
 
   const fetchSites = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/sites', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    const data = await response.json();
+    try {
+      const token = localStorage.getItem('access_token');
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+      const response = await fetch('http://localhost:3000/sites', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setSites(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load sites');
     }
-    setSites(getArray(data));
   };
 
   const fetchCategories = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/product-categories', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    const data = await response.json();
+    try {
+      const token = localStorage.getItem('access_token');
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+      const response = await fetch('http://localhost:3000/product-categories', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setCategories(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load categories');
     }
-    setCategories(getArray(data));
   };
 
   const fetchContracts = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/contracts', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    const data = await response.json();
+    try {
+      const token = localStorage.getItem('access_token');
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+      const response = await fetch('http://localhost:3000/contracts', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setContracts(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load contracts');
     }
-    setContracts(getArray(data));
   };
 
   const fetchOrders = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/orders', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    const data = await response.json();
+    try {
+      const token = localStorage.getItem('access_token');
 
-    // Token expired or missing, redirect to login
-    if (response.status === 401) {
-      window.location.href = '/';
+      const response = await fetch('http://localhost:3000/orders', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/';
+        return;
+      }
+
+      const data = await response.json();
+      setOrders(getArray(data));
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to load orders');
     }
-    setOrders(getArray(data));
   };
 
   useEffect(() => {
@@ -375,27 +443,6 @@ const ProductDetails = () => {
     }));
   };
 
-  const resetForm = () => {
-    setFormData({
-      orderId: '',
-      date: '',
-      companyId: '',
-      siteId: '',
-      categoriesId: '',
-      contractId: '',
-      challanNo: '',
-      buyingQuantity: '',
-      buyingPricePerCft: '',
-      rentCost: '',
-      labourCost: '',
-      otherCost: '',
-      sellingQuantity: '',
-      status: '',
-    });
-
-    setFilteredContracts([]);
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -408,8 +455,8 @@ const ProductDetails = () => {
         : 'http://localhost:3000/product-details';
 
       const method = editId ? 'PUT' : 'POST';
-
       const token = localStorage.getItem('access_token');
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -434,9 +481,9 @@ const ProductDetails = () => {
         }),
       });
 
-      // Token expired or missing, redirect to login
       if (response.status === 401) {
         window.location.href = '/';
+        return;
       }
 
       const data = await response.json();
@@ -449,12 +496,11 @@ const ProductDetails = () => {
         editId ? 'Product details updated successfully.' : 'Product details created successfully.',
       );
 
-      // After successfully creating the product details, update the order status to "completed"
       if (response.ok && !editId) {
         await fetch(`http://localhost:3000/orders/${formData.orderId}`, {
           method: 'PUT',
           headers: {
-            Authorization: `Bearer ${token}`, 
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -464,8 +510,9 @@ const ProductDetails = () => {
       }
 
       resetForm();
-      setEditId(null);
+      setIsModalOpen(false);
       fetchProductDetails();
+      fetchOrders();
     } catch (error) {
       console.error(error);
       setMessage(error instanceof Error ? error.message : 'Something went wrong');
@@ -510,7 +557,8 @@ const ProductDetails = () => {
       status: product.status,
     });
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setMessage('');
+    setIsModalOpen(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -520,6 +568,7 @@ const ProductDetails = () => {
 
     try {
       const token = localStorage.getItem('access_token');
+
       const response = await fetch(`http://localhost:3000/product-details/${id}`, {
         method: 'DELETE',
         headers: {
@@ -527,9 +576,9 @@ const ProductDetails = () => {
         },
       });
 
-      // Token expired or missing, redirect to login
       if (response.status === 401) {
         window.location.href = '/';
+        return;
       }
 
       const data = await response.json();
@@ -546,301 +595,21 @@ const ProductDetails = () => {
     }
   };
 
-  const handleCancelEdit = () => {
-    setEditId(null);
-    resetForm();
-  };
-
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-slate-800">
-        {editId ? 'Update Product Details' : 'Create Product Details'}
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-slate-800">Product Details List</h1>
 
-      <form onSubmit={handleSubmit} className="mb-8 max-w-2xl space-y-5">
-        <div>
-          <label htmlFor="orderId" className="mb-2 block text-sm font-medium text-slate-700">
-            Order
-          </label>
+        <button
+          type="button"
+          onClick={openCreateModal}
+          className="rounded-lg bg-green-700 px-5 py-2 font-semibold text-white transition hover:bg-green-800"
+        >
+          Create Product Details
+        </button>
+      </div>
 
-          <select
-            id="orderId"
-            name="orderId"
-            value={formData.orderId}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          >
-            <option value="">Select Order</option>
-
-            {orders
-              .filter((order) => order.status === 'Completed')
-              .map((order) => (
-                <option key={order.id} value={String(order.id)}>
-                  {getOrderLabel(order)}
-                </option>
-              ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="date" className="mb-2 block text-sm font-medium text-slate-700">
-            Date
-          </label>
-
-          <input
-            id="date"
-            type="date"
-            value={formData.date}
-            readOnly
-            required
-            className="w-full cursor-not-allowed rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 outline-none"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="companyName" className="mb-2 block text-sm font-medium text-slate-700">
-            Company Name
-          </label>
-
-          <input
-            id="companyName"
-            type="text"
-            value={formData.companyId ? getCompanyNameById(formData.companyId) : ''}
-            readOnly
-            placeholder="Company will be filled from order"
-            className="w-full cursor-not-allowed rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 outline-none"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="siteName" className="mb-2 block text-sm font-medium text-slate-700">
-            Site Name
-          </label>
-
-          <input
-            id="siteName"
-            type="text"
-            value={formData.siteId ? getSiteNameById(formData.siteId) : ''}
-            readOnly
-            placeholder="Site will be filled from order"
-            className="w-full cursor-not-allowed rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 outline-none"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="categoryName" className="mb-2 block text-sm font-medium text-slate-700">
-            Item / Product Category
-          </label>
-
-          <input
-            id="categoryName"
-            type="text"
-            value={formData.categoriesId ? getCategoryNameById(formData.categoriesId) : ''}
-            readOnly
-            placeholder="Item will be filled from order"
-            className="w-full cursor-not-allowed rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 outline-none"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="contractId" className="mb-2 block text-sm font-medium text-slate-700">
-            Contract / Selling Price
-          </label>
-
-          <select
-            id="contractId"
-            name="contractId"
-            value={formData.contractId}
-            onChange={handleChange}
-            required
-            disabled={!formData.orderId}
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:cursor-not-allowed disabled:bg-slate-100"
-          >
-            <option value="">{formData.orderId ? 'Select Contract' : 'Select Order First'}</option>
-
-            {filteredContracts.map((contract) => (
-              <option key={contract.id} value={String(contract.id)}>
-                {/* Contract #{contract.id} - Rate:  */}
-                {contract.rate}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="challanNo" className="mb-2 block text-sm font-medium text-slate-700">
-            Challan No
-          </label>
-
-          <input
-            id="challanNo"
-            type="text"
-            name="challanNo"
-            value={formData.challanNo}
-            onChange={handleChange}
-            required
-            placeholder="Enter challan no"
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="buyingQuantity" className="mb-2 block text-sm font-medium text-slate-700">
-            Buying Quantity
-          </label>
-
-          <input
-            id="buyingQuantity"
-            type="number"
-            step="any"
-            name="buyingQuantity"
-            value={formData.buyingQuantity}
-            onChange={handleChange}
-            required
-            placeholder="Enter buying quantity"
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="buyingPricePerCft"
-            className="mb-2 block text-sm font-medium text-slate-700"
-          >
-            Buying Price Per CFT
-          </label>
-
-          <input
-            id="buyingPricePerCft"
-            type="number"
-            step="any"
-            name="buyingPricePerCft"
-            value={formData.buyingPricePerCft}
-            onChange={handleChange}
-            required
-            placeholder="Enter buying price per CFT"
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="rentCost" className="mb-2 block text-sm font-medium text-slate-700">
-            Rent Cost
-          </label>
-
-          <input
-            id="rentCost"
-            type="number"
-            step="any"
-            name="rentCost"
-            value={formData.rentCost}
-            onChange={handleChange}
-            placeholder="Enter rent cost"
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="labourCost" className="mb-2 block text-sm font-medium text-slate-700">
-            Labour Cost
-          </label>
-
-          <input
-            id="labourCost"
-            type="number"
-            step="any"
-            name="labourCost"
-            value={formData.labourCost}
-            onChange={handleChange}
-            required
-            placeholder="Enter labour cost"
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="otherCost" className="mb-2 block text-sm font-medium text-slate-700">
-            Other Cost
-          </label>
-
-          <input
-            id="otherCost"
-            type="number"
-            step="any"
-            name="otherCost"
-            value={formData.otherCost}
-            onChange={handleChange}
-            required
-            placeholder="Enter other cost"
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="sellingQuantity"
-            className="mb-2 block text-sm font-medium text-slate-700"
-          >
-            Selling Quantity
-          </label>
-
-          <input
-            id="sellingQuantity"
-            type="number"
-            step="any"
-            name="sellingQuantity"
-            value={formData.sellingQuantity}
-            onChange={handleChange}
-            required
-            placeholder="Enter selling quantity"
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          />
-        </div>
-
-        {/* <div>
-          <label htmlFor="status" className="mb-2 block text-sm font-medium text-slate-700">
-            Status
-          </label>
-
-          <select
-            id="status"
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-          >
-            <option value="">Select Status</option>
-            <option value="pending">Pending</option>
-            <option value="running">Running</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div> */}
-
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-          >
-            {loading ? 'Saving...' : editId ? 'Update Product Details' : 'Create Product Details'}
-          </button>
-
-          {editId && (
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              className="rounded-lg bg-slate-500 px-6 py-3 font-semibold text-white hover:bg-slate-600"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-
-        {message && <p className="text-sm font-medium text-slate-700">{message}</p>}
-      </form>
+      {message && <p className="mb-4 text-sm font-medium text-slate-700">{message}</p>}
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -907,8 +676,325 @@ const ProductDetails = () => {
         </table>
       </div>
 
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-6">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl bg-white p-6 shadow-lg">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-800">
+                {editId ? 'Update Product Details' : 'Create Product Details'}
+              </h2>
+
+              <button
+                type="button"
+                onClick={closeModal}
+                className="text-2xl font-bold text-slate-500 hover:text-slate-800"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <label
+                    htmlFor="orderId"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Order
+                  </label>
+
+                  <select
+                    id="orderId"
+                    name="orderId"
+                    value={formData.orderId}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  >
+                    <option value="">Select Order</option>
+
+                    {orders
+                      .filter((order) => order.status === 'Completed')
+                      .map((order) => (
+                        <option key={order.id} value={String(order.id)}>
+                          {getOrderLabel(order)}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="date" className="mb-2 block text-sm font-medium text-slate-700">
+                    Date
+                  </label>
+
+                  <input
+                    id="date"
+                    type="date"
+                    value={formData.date}
+                    readOnly
+                    required
+                    className="w-full cursor-not-allowed rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="companyName"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Company Name
+                  </label>
+
+                  <input
+                    id="companyName"
+                    type="text"
+                    value={formData.companyId ? getCompanyNameById(formData.companyId) : ''}
+                    readOnly
+                    placeholder="Company will be filled from order"
+                    className="w-full cursor-not-allowed rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="siteName"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Site Name
+                  </label>
+
+                  <input
+                    id="siteName"
+                    type="text"
+                    value={formData.siteId ? getSiteNameById(formData.siteId) : ''}
+                    readOnly
+                    placeholder="Site will be filled from order"
+                    className="w-full cursor-not-allowed rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="categoryName"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Item / Product Category
+                  </label>
+
+                  <input
+                    id="categoryName"
+                    type="text"
+                    value={formData.categoriesId ? getCategoryNameById(formData.categoriesId) : ''}
+                    readOnly
+                    placeholder="Item will be filled from order"
+                    className="w-full cursor-not-allowed rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="contractId"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Contract / Selling Price
+                  </label>
+
+                  <select
+                    id="contractId"
+                    name="contractId"
+                    value={formData.contractId}
+                    onChange={handleChange}
+                    required
+                    disabled={!formData.orderId}
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  >
+                    <option value="">
+                      {formData.orderId ? 'Select Contract' : 'Select Order First'}
+                    </option>
+
+                    {filteredContracts.map((contract) => (
+                      <option key={contract.id} value={String(contract.id)}>
+                        {contract.rate}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="challanNo"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Challan No
+                  </label>
+
+                  <input
+                    id="challanNo"
+                    type="text"
+                    name="challanNo"
+                    value={formData.challanNo}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter challan no"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="buyingQuantity"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Buying Quantity
+                  </label>
+
+                  <input
+                    id="buyingQuantity"
+                    type="number"
+                    step="any"
+                    name="buyingQuantity"
+                    value={formData.buyingQuantity}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter buying quantity"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="buyingPricePerCft"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Buying Price Per CFT
+                  </label>
+
+                  <input
+                    id="buyingPricePerCft"
+                    type="number"
+                    step="any"
+                    name="buyingPricePerCft"
+                    value={formData.buyingPricePerCft}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter buying price per CFT"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="rentCost"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Rent Cost
+                  </label>
+
+                  <input
+                    id="rentCost"
+                    type="number"
+                    step="any"
+                    name="rentCost"
+                    value={formData.rentCost}
+                    onChange={handleChange}
+                    placeholder="Enter rent cost"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="labourCost"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Labour Cost
+                  </label>
+
+                  <input
+                    id="labourCost"
+                    type="number"
+                    step="any"
+                    name="labourCost"
+                    value={formData.labourCost}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter labour cost"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="otherCost"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Other Cost
+                  </label>
+
+                  <input
+                    id="otherCost"
+                    type="number"
+                    step="any"
+                    name="otherCost"
+                    value={formData.otherCost}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter other cost"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="sellingQuantity"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Selling Quantity
+                  </label>
+
+                  <input
+                    id="sellingQuantity"
+                    type="number"
+                    step="any"
+                    name="sellingQuantity"
+                    value={formData.sellingQuantity}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter selling quantity"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="rounded-lg bg-slate-500 px-6 py-3 font-semibold text-white hover:bg-slate-600"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  {loading
+                    ? 'Saving...'
+                    : editId
+                      ? 'Update Product Details'
+                      : 'Create Product Details'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {detailsData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 px-4 py-6">
           <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-800">Product Details</h2>
@@ -928,16 +1014,13 @@ const ProductDetails = () => {
               <DetailsItem label="Site" value={getSiteName(detailsData)} />
               <DetailsItem label="Item" value={getCategoryName(detailsData)} />
               <DetailsItem label="Challan" value={detailsData.challanNo} />
-
               <DetailsItem label="Buying Quantity" value={detailsData.buyingQuantity} />
               <DetailsItem label="Buying Price Per CFT" value={detailsData.buyingPricePerCft} />
               <DetailsItem label="Rent Cost" value={detailsData.rentCost} />
               <DetailsItem label="Labour Cost" value={detailsData.labourCost} />
               <DetailsItem label="Other Cost" value={detailsData.otherCost} />
-
               <DetailsItem label="Selling Quantity" value={detailsData.sellingQuantity} />
               <DetailsItem label="Selling Price" value={getContractRate(detailsData)} />
-              {/* <DetailsItem label="Status" value={detailsData.status} /> */}
               <DetailsItem label="Total Price" value={detailsData.totalPrice} />
               <DetailsItem label="Total Cost" value={detailsData.totalCost} />
               <DetailsItem label="Profit" value={detailsData.profit} />
