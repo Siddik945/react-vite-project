@@ -1,4 +1,18 @@
 import React, { useState } from 'react';
+type StatCardProps = {
+  label: string;
+  value: string | number;
+};
+
+type InputFieldProps = {
+  label: string;
+  name: string;
+  value: string;
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
+};
 
 export default function Layout() {
   const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -385,7 +399,7 @@ export default function Layout() {
                   value={contactForm.message}
                   onChange={handleContactChange}
                   placeholder="Write your message"
-                  rows="5"
+                  rows={5}
                   required
                   className="w-full rounded-2xl border border-slate-300 px-4 py-3 transition outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
                 />
@@ -465,7 +479,7 @@ export default function Layout() {
   );
 }
 
-function ContactInfo({ label, value }) {
+function ContactInfo({ label, value }: StatCardProps) {
   return (
     <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <p className="text-sm font-bold tracking-wide text-emerald-700 uppercase">{label}</p>
@@ -482,7 +496,7 @@ function InputField({
   type = 'text',
   placeholder,
   required = false,
-}) {
+}: InputFieldProps) {
   return (
     <div>
       <label className="mb-2 block text-sm font-semibold text-slate-700" htmlFor={name}>
