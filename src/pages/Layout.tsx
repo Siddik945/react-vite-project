@@ -78,44 +78,44 @@ export default function Layout() {
   };
 
   // Optional helper function to fetch with auto-refresh
-  const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-    let token = localStorage.getItem('access_token');
+  // const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  //   let token = localStorage.getItem('access_token');
 
-    const headers = {
-      ...options.headers,
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    };
+  //   const headers = {
+  //     ...options.headers,
+  //     Authorization: `Bearer ${token}`,
+  //     'Content-Type': 'application/json',
+  //   };
 
-    let response = await fetch(url, { ...options, headers });
-    if (response.status === 401) {
-      // Token expired, try refresh
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (!refreshToken) throw new Error('Session expired');
+  //   let response = await fetch(url, { ...options, headers });
+  //   if (response.status === 401) {
+  //     // Token expired, try refresh
+  //     const refreshToken = localStorage.getItem('refresh_token');
+  //     if (!refreshToken) throw new Error('Session expired');
 
-      const refreshResponse = await fetch('http://localhost:3000/auth/refresh', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh_token: refreshToken }),
-      });
+  //     const refreshResponse = await fetch('http://localhost:3000/auth/refresh', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ refresh_token: refreshToken }),
+  //     });
 
-      const refreshData = await refreshResponse.json();
-      if (!refreshResponse.ok) throw new Error(refreshData.message || 'Could not refresh token');
+  //     const refreshData = await refreshResponse.json();
+  //     if (!refreshResponse.ok) throw new Error(refreshData.message || 'Could not refresh token');
 
-      // Update tokens
-      localStorage.setItem('access_token', refreshData.access_token);
-      localStorage.setItem('refresh_token', refreshData.refresh_token);
+  //     // Update tokens
+  //     localStorage.setItem('access_token', refreshData.access_token);
+  //     localStorage.setItem('refresh_token', refreshData.refresh_token);
 
-      // Retry original request with new token
-      token = refreshData.access_token;
-      response = await fetch(url, {
-        ...options,
-        headers: { ...headers, Authorization: `Bearer ${token}` },
-      });
-    }
+  //     // Retry original request with new token
+  //     token = refreshData.access_token;
+  //     response = await fetch(url, {
+  //       ...options,
+  //       headers: { ...headers, Authorization: `Bearer ${token}` },
+  //     });
+  //   }
 
-    return response.json();
-  };
+  //   return response.json();
+  // };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
