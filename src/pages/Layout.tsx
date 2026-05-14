@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 type StatCardProps = {
   label: string;
   value: string | number;
@@ -16,6 +17,8 @@ type InputFieldProps = {
 
 export default function Layout() {
   const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const [contactForm, setContactForm] = useState({
     name: '',
     phone: '',
@@ -23,7 +26,11 @@ export default function Layout() {
     subject: '',
     message: '',
   });
-  const [authForm, setAuthForm] = useState({ email: '', password: '' });
+
+  const [authForm, setAuthForm] = useState({
+    email: '',
+    password: '',
+  });
 
   const openModal = (modalName: string) => {
     setAuthForm({ email: '', password: '' });
@@ -32,6 +39,10 @@ export default function Layout() {
 
   const closeModal = () => {
     setActiveModal(null);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
   };
 
   const handleContactChange = (
@@ -73,16 +84,17 @@ export default function Layout() {
         throw new Error(data.message || 'Something went wrong');
       }
 
-      // console.log(data.data.access_token);
+      if (data.data.access_token) {
+        localStorage.setItem('access_token', data.data.access_token);
+      }
 
-      // Store access and refresh tokens
-      if (data.data.access_token) localStorage.setItem('access_token', data.data.access_token);
-      if (data.data.refresh_token) localStorage.setItem('refresh_token', data.data.refresh_token);
+      if (data.data.refresh_token) {
+        localStorage.setItem('refresh_token', data.data.refresh_token);
+      }
 
       closeModal();
       setAuthForm({ email: '', password: '' });
 
-      // Redirect to dashboard after login
       if (activeModal === 'login') {
         window.location.href = '/dashboard';
       }
@@ -91,92 +103,97 @@ export default function Layout() {
     }
   };
 
-  // Optional helper function to fetch with auto-refresh
-  // const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-  //   let token = localStorage.getItem('access_token');
-
-  //   const headers = {
-  //     ...options.headers,
-  //     Authorization: `Bearer ${token}`,
-  //     'Content-Type': 'application/json',
-  //   };
-
-  //   let response = await fetch(url, { ...options, headers });
-  //   if (response.status === 401) {
-  //     // Token expired, try refresh
-  //     const refreshToken = localStorage.getItem('refresh_token');
-  //     if (!refreshToken) throw new Error('Session expired');
-
-  //     const refreshResponse = await fetch('http://localhost:3000/auth/refresh', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ refresh_token: refreshToken }),
-  //     });
-
-  //     const refreshData = await refreshResponse.json();
-  //     if (!refreshResponse.ok) throw new Error(refreshData.message || 'Could not refresh token');
-
-  //     // Update tokens
-  //     localStorage.setItem('access_token', refreshData.access_token);
-  //     localStorage.setItem('refresh_token', refreshData.refresh_token);
-
-  //     // Retry original request with new token
-  //     token = refreshData.access_token;
-  //     response = await fetch(url, {
-  //       ...options,
-  //       headers: { ...headers, Authorization: `Bearer ${token}` },
-  //     });
-  //   }
-
-  //   return response.json();
-  // };
+  const menuLinks = [
+    { label: 'Home', href: '#home' },
+    { label: 'About Us', href: '#about' },
+    { label: 'Services', href: '#services' },
+    { label: 'Contact Us', href: '#contact' },
+  ];
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <a href="#home" className="text-2xl font-bold tracking-tight text-emerald-700">
-            Monsur Enterprise
-          </a>
-
-          <div className="hidden items-center gap-8 md:flex">
-            <a className="font-medium text-slate-700 hover:text-emerald-700" href="#home">
-              Home
-            </a>
-            <a className="font-medium text-slate-700 hover:text-emerald-700" href="#about">
-              About Us
-            </a>
-            <a className="font-medium text-slate-700 hover:text-emerald-700" href="#services">
-              Services
-            </a>
-            <a className="font-medium text-slate-700 hover:text-emerald-700" href="#contact">
-              Contact Us
-            </a>
-          </div>
-
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => openModal('login')}
-              className="rounded-full border border-emerald-700 px-5 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
+              onClick={() => setIsMenuOpen(true)}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-xl font-bold text-slate-700 md:hidden"
+              aria-label="Open menu"
             >
-              Login
+              ☰
             </button>
-            {/* <button
-              type="button"
-              onClick={() => openModal('register')}
-              className="rounded-full bg-emerald-700 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800"
-            >
-              Register
-            </button> */}
+
+            <a href="#home" className="text-2xl font-bold tracking-tight text-emerald-700">
+              Monsur Enterprise
+            </a>
           </div>
+
+          <div className="hidden items-center gap-8 md:flex">
+            {menuLinks.map((link) => (
+              <a
+                key={link.href}
+                className="font-medium text-slate-700 hover:text-emerald-700"
+                href={link.href}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => openModal('login')}
+            className="rounded-full border border-emerald-700 px-5 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
+          >
+            Login
+          </button>
         </nav>
       </header>
+
+      {isMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-slate-950/50"
+            onClick={closeMenu}
+            aria-label="Close menu overlay"
+          />
+
+          <aside className="absolute top-0 left-0 h-full w-72 bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-emerald-700">Monsur Enterprise</h2>
+
+              <button
+                type="button"
+                onClick={closeMenu}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-2xl font-bold text-slate-700 hover:bg-slate-200"
+                aria-label="Close menu"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mt-8 flex flex-col gap-5">
+              {menuLinks.map((link) => (
+                <a
+                  key={link.href}
+                  onClick={closeMenu}
+                  href={link.href}
+                  className="rounded-xl px-4 py-3 font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          </aside>
+        </div>
+      )}
 
       <main>
         <section
           id="home"
-          className="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-slate-900 text-white"
+          className="relative overflow-hidden bg-linear-to-br from-emerald-900 via-emerald-800 to-slate-900 text-white"
         >
           <div className="absolute inset-0 opacity-20">
             <div className="absolute top-20 left-10 h-72 w-72 rounded-full bg-emerald-300 blur-3xl" />
@@ -185,16 +202,15 @@ export default function Layout() {
 
           <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 py-24 lg:grid-cols-2 lg:py-32">
             <div>
-              <p className="mb-4 inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-semibold ring-1 ring-white/20">
-                Established in 2010
-              </p>
               <h1 className="text-4xl leading-tight font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
                 Welcome to Monsur Enterprise.
               </h1>
+
               <p className="mt-6 max-w-xl text-lg leading-8 text-emerald-50">
                 A trusted company with successful project experience across Dhaka, committed to
                 quality, reliability, and professional service.
               </p>
+
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
                 <a
                   href="#contact"
@@ -202,6 +218,7 @@ export default function Layout() {
                 >
                   Contact Us
                 </a>
+
                 <a
                   href="#about"
                   className="rounded-full border border-white/50 px-8 py-3 text-center font-bold text-white transition hover:bg-white/10"
@@ -214,15 +231,18 @@ export default function Layout() {
             <div className="rounded-3xl bg-white/10 p-6 shadow-2xl ring-1 ring-white/20 backdrop-blur">
               <div className="rounded-2xl bg-white p-8 text-slate-900">
                 <h2 className="text-2xl font-bold text-emerald-800">Company Highlights</h2>
+
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
                   <div className="rounded-2xl bg-emerald-50 p-5">
-                    <p className="text-3xl font-extrabold text-emerald-800">30+</p>
+                    <p className="text-3xl font-extrabold text-emerald-800">40+</p>
                     <p className="mt-1 text-sm font-medium text-slate-600">Completed Projects</p>
                   </div>
+
                   <div className="rounded-2xl bg-slate-100 p-5">
                     <p className="text-3xl font-extrabold text-emerald-800">2010</p>
                     <p className="mt-1 text-sm font-medium text-slate-600">Established</p>
                   </div>
+
                   <div className="rounded-2xl bg-slate-100 p-5 sm:col-span-2">
                     <p className="text-sm font-semibold tracking-wide text-slate-500 uppercase">
                       Office Location
@@ -240,18 +260,17 @@ export default function Layout() {
         <section id="about" className="mx-auto max-w-7xl px-6 py-20">
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
             <div>
-              <p className="text-sm font-bold tracking-widest text-emerald-700 uppercase">
-                About Us
-              </p>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
                 Building trust through successful project delivery.
               </h2>
+
               <p className="mt-6 text-lg leading-8 text-slate-600">
                 Monsur Enterprise was established in 2010. The founder of the company is Md. Abul
                 Monsur, and the Managing Director is Md. Abu Bakar Siddik.
               </p>
+
               <p className="mt-4 text-lg leading-8 text-slate-600">
-                So far, we have successfully completed more than 30 projects in Dhaka. Our office is
+                So far, we have successfully completed more than 40 projects in Dhaka. Our office is
                 located at Azimpur Super Market, Dakkhinkhan, Dhaka-1230.
               </p>
             </div>
@@ -264,58 +283,67 @@ export default function Layout() {
                 <h3 className="mt-5 text-xl font-bold">Founder</h3>
                 <p className="mt-2 text-slate-600">Md. Abul Monsur</p>
               </div>
+
               <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-xl font-black text-emerald-800">
                   02
                 </div>
                 <h3 className="mt-5 text-xl font-bold">Managing Director</h3>
                 <p className="mt-2 text-slate-600">Md. Abu Bakar Siddik</p>
+                <small>B.Sc Engineer</small>
               </div>
+
               <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:col-span-2">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-xl font-black text-emerald-800">
                   03
                 </div>
                 <h3 className="mt-5 text-xl font-bold">Project Experience</h3>
                 <p className="mt-2 text-slate-600">
-                  More than 30 successfully completed projects in Dhaka.
+                  More than 40 successfully completed projects in Dhaka.
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="services" className="bg-white py-20">
+        <section id="services" className="bg-white py-2">
           <div className="mx-auto max-w-7xl px-6">
-            <div className="mx-auto max-w-3xl text-center">
-              {/* <p className="text-sm font-bold tracking-widest text-emerald-700 uppercase">
+            <div className="relative mx-auto mt-12 flex h-130 max-w-4xl items-center justify-center overflow-hidden sm:h-155">
+              <div className="z-10 flex h-36 w-36 items-center justify-center rounded-full bg-emerald-700 text-center text-xl font-extrabold text-white shadow-xl ring-8 ring-emerald-100 sm:h-48 sm:w-48 sm:text-2xl">
                 Our Services
-              </p> */}
-              <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
-                Our Services
-              </h2>
-              <p className="mt-5 text-lg leading-8 text-slate-600">
-                এখানে সকল প্রকার ইট, ইটের খোয়া, সাদা আস্তর বালি ময়মনসিংহ, সাদা আস্তর বালি ভুয়াপুর,
-                সিলেট বালি,সাদা এলসি পাথর,কালো এলসি পাথর, পাকুর পাথর, ভুটান পাথর, রাইটার পাথর, ভুতু
-                ভাঙ্গা পাথর,সিংগের পাথর পাওয়ার যায়।
-              </p>
-            </div>
+              </div>
 
-            <div className="mt-12 grid gap-6 md:grid-cols-3">
-              {['Reliable Service', 'Professional Support', 'Future Expansion'].map((service) => (
-                <div
-                  key={service}
-                  className="rounded-3xl bg-slate-50 p-8 text-center shadow-sm ring-1 ring-slate-200"
-                >
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-700 text-2xl font-black text-white">
-                    ✓
+              {[
+                'সিংগের পাথর',
+                'ভুতু ভাঙ্গা পাথর',
+                'রাইটার পাথর',
+                'ভুটান পাথর',
+                'পাকুর পাথর',
+                'সাদা এলসি পাথর',
+                'কালো এলসি পাথর',
+                'ইট',
+                'ইটের খোয়া',
+                'ভিটি বালি',
+                'সাদা আস্তর বালি',
+                'সিলেট বালি',
+              ].map((service, index, arr) => {
+                const angle = (index / arr.length) * 2 * Math.PI;
+                const radius = 190;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+
+                return (
+                  <div
+                    key={service}
+                    className="absolute flex h-20 w-20 items-center justify-center rounded-full bg-slate-50 p-2 text-center text-xs font-bold text-slate-700 shadow-md ring-1 ring-slate-200 sm:h-24 sm:w-24 sm:text-sm"
+                    style={{
+                      transform: `translate(${x}px, ${y}px)`,
+                    }}
+                  >
+                    {service}
                   </div>
-                  <h3 className="mt-6 text-xl font-bold text-slate-900">{service}</h3>
-                  <p className="mt-3 text-slate-600">
-                    Monsur Enterprise is focused on providing dependable and improved services for
-                    clients.
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
@@ -323,24 +351,22 @@ export default function Layout() {
         <section id="contact" className="mx-auto max-w-7xl px-6 py-20">
           <div className="grid gap-10 lg:grid-cols-2">
             <div>
-              <p className="text-sm font-bold tracking-widest text-emerald-700 uppercase">
-                Contact Us
-              </p>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
                 Get in touch with Monsur Enterprise.
               </h2>
+
               <p className="mt-5 text-lg leading-8 text-slate-600">
                 Send us a message using the contact form or visit our office location in Dhaka.
               </p>
 
               <div className="mt-8 space-y-4">
-                <ContactInfo label="Phone Number" value="Add phone number here" />
-                <ContactInfo label="Email" value="Add email address here" />
+                <ContactInfo label="Phone Number" value="01737-593600, 01766-229353" />
+                <ContactInfo label="Email" value="absiddik945@gmail.com" />
                 <ContactInfo
                   label="Location"
                   value="Azimpur Super Market, Dakkhinkhan, Dhaka-1230"
                 />
-                <ContactInfo label="Office Hours" value="Add office hours here" />
+                <ContactInfo label="Office Hours" value="9:00 AM - 10:00 PM" />
               </div>
             </div>
 
@@ -359,6 +385,7 @@ export default function Layout() {
                   placeholder="Your name"
                   required
                 />
+
                 <InputField
                   label="Phone Number"
                   name="phone"
@@ -367,6 +394,7 @@ export default function Layout() {
                   placeholder="Your phone number"
                   required
                 />
+
                 <InputField
                   label="Email"
                   type="email"
@@ -376,6 +404,7 @@ export default function Layout() {
                   placeholder="Your email"
                   required
                 />
+
                 <InputField
                   label="Subject"
                   name="subject"
@@ -393,6 +422,7 @@ export default function Layout() {
                 >
                   Message
                 </label>
+
                 <textarea
                   id="message"
                   name="message"
@@ -422,6 +452,7 @@ export default function Layout() {
             <h2 className="text-xl font-bold">Monsur Enterprise</h2>
             <p className="mt-1 text-sm text-slate-400">Established in 2010 · Dhaka, Bangladesh</p>
           </div>
+
           <p className="text-sm text-slate-400">
             © {new Date().getFullYear()} Monsur Enterprise. All rights reserved.
           </p>
@@ -435,6 +466,7 @@ export default function Layout() {
               <h2 className="text-2xl font-extrabold text-slate-900">
                 {activeModal === 'register' ? 'Register Modal' : 'Login Modal'}
               </h2>
+
               <button
                 type="button"
                 onClick={closeModal}
@@ -455,6 +487,7 @@ export default function Layout() {
                 placeholder="Enter your email"
                 required
               />
+
               <InputField
                 label="Password"
                 type="password"
@@ -502,6 +535,7 @@ function InputField({
       <label className="mb-2 block text-sm font-semibold text-slate-700" htmlFor={name}>
         {label}
       </label>
+
       <input
         id={name}
         name={name}
