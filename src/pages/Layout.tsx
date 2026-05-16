@@ -15,6 +15,8 @@ type InputFieldProps = {
   onChange: React.ChangeEventHandler<HTMLInputElement>;
 };
 
+const API_BASE_URL = import.meta.env.VITE_BASE_URL;
+
 export default function Layout() {
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -67,9 +69,7 @@ export default function Layout() {
     event.preventDefault();
 
     const url =
-      activeModal === 'register'
-        ? 'http://localhost:3000/auth/register'
-        : 'http://localhost:3000/auth/login';
+      activeModal === 'register' ? `${API_BASE_URL}/auth/register` : `${API_BASE_URL}/auth/login`;
 
     try {
       const response = await fetch(url, {
@@ -257,7 +257,7 @@ export default function Layout() {
           </div>
         </section>
 
-        <section id="about" className="mx-auto max-w-7xl px-6 py-20">
+        <section id="about" className="mx-auto max-w-7xl px-6 py-30">
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
             <div>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">

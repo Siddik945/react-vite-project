@@ -22,6 +22,7 @@ const Home = () => {
   const [sites, setSites] = useState<Site[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const getArray = (data: any) => {
     if (Array.isArray(data)) return data;
@@ -31,7 +32,7 @@ const Home = () => {
 
   const fetchSites = async () => {
     const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/sites', {
+    const response = await fetch(`${API_BASE_URL}/sites`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -48,7 +49,7 @@ const Home = () => {
 
   const fetchCategories = async () => {
     const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/product-categories', {
+    const response = await fetch(`${API_BASE_URL}/product-categories`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -65,7 +66,7 @@ const Home = () => {
 
   const fetchOrders = async () => {
     const token = localStorage.getItem('access_token');
-    const response = await fetch('http://localhost:3000/orders', {
+    const response = await fetch(`${API_BASE_URL}/orders`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',

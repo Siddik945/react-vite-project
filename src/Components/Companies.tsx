@@ -28,12 +28,13 @@ const Companies = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const fetchCompanies = async () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('http://localhost:3000/companies', {
+      const response = await fetch(`${API_BASE_URL}/companies`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -101,9 +102,7 @@ const Companies = () => {
     setMessage('');
 
     try {
-      const url = editId
-        ? `http://localhost:3000/companies/${editId}`
-        : 'http://localhost:3000/companies';
+      const url = editId ? `${API_BASE_URL}/companies/${editId}` : `${API_BASE_URL}/companies`;
 
       const method = editId ? 'PUT' : 'POST';
       const token = localStorage.getItem('access_token');
@@ -161,7 +160,7 @@ const Companies = () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch(`http://localhost:3000/companies/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/companies/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

@@ -42,6 +42,8 @@ const OrderNow = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
+  const API_BASE_URL = import.meta.env.VITE_BASE_URL;
+
   const getArray = (data: any) => {
     if (Array.isArray(data)) return data;
     if (Array.isArray(data.data)) return data.data;
@@ -73,7 +75,7 @@ const OrderNow = () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('http://localhost:3000/sites', {
+      const response = await fetch(`${API_BASE_URL}/sites`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -97,7 +99,7 @@ const OrderNow = () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('http://localhost:3000/product-categories', {
+      const response = await fetch(`${API_BASE_URL}/product-categories`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -121,7 +123,7 @@ const OrderNow = () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('http://localhost:3000/orders', {
+      const response = await fetch(`${API_BASE_URL}/orders`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -163,9 +165,7 @@ const OrderNow = () => {
     setMessage('');
 
     try {
-      const url = editId
-        ? `http://localhost:3000/orders/${editId}`
-        : 'http://localhost:3000/orders';
+      const url = editId ? `${API_BASE_URL}/orders/${editId}` : `${API_BASE_URL}/orders`;
 
       const method = editId ? 'PUT' : 'POST';
       const token = localStorage.getItem('access_token');

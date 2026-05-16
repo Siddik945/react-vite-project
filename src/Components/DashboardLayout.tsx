@@ -26,12 +26,13 @@ const DashboardLayout = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const fetchCompanies = async () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const res = await fetch('http://localhost:3000/auth/me', {
+      const res = await fetch(`${API_BASE_URL}/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

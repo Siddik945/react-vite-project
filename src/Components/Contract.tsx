@@ -82,12 +82,13 @@ const Contract = () => {
     setIsModalOpen(false);
     resetForm();
   };
+  const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const fetchContracts = async () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('http://localhost:3000/contracts', {
+      const response = await fetch(`${API_BASE_URL}/contracts`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -111,7 +112,7 @@ const Contract = () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('http://localhost:3000/companies', {
+      const response = await fetch(`${API_BASE_URL}/companies`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -135,7 +136,7 @@ const Contract = () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('http://localhost:3000/sites', {
+      const response = await fetch(`${API_BASE_URL}/sites`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -159,7 +160,7 @@ const Contract = () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('http://localhost:3000/product-categories', {
+      const response = await fetch(`${API_BASE_URL}/product-categories`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -216,9 +217,7 @@ const Contract = () => {
     setMessage('');
 
     try {
-      const url = editId
-        ? `http://localhost:3000/contracts/${editId}`
-        : 'http://localhost:3000/contracts';
+      const url = editId ? `${API_BASE_URL}/contracts/${editId}` : `${API_BASE_URL}/contracts`;
 
       const method = editId ? 'PUT' : 'POST';
       const token = localStorage.getItem('access_token');

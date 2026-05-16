@@ -68,12 +68,14 @@ const Payments = () => {
     setIsModalOpen(false);
     resetForm();
   };
+  
+  const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const fetchCompanies = async () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('http://localhost:3000/companies', {
+      const response = await fetch(`${API_BASE_URL}/companies`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -97,7 +99,7 @@ const Payments = () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('http://localhost:3000/methods', {
+      const response = await fetch(`${API_BASE_URL}/methods`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -121,7 +123,7 @@ const Payments = () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('http://localhost:3000/payments', {
+      const response = await fetch(`${API_BASE_URL}/payments`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -163,9 +165,9 @@ const Payments = () => {
     setMessage('');
 
     try {
-      const url = editId
-        ? `http://localhost:3000/payments/${editId}`
-        : 'http://localhost:3000/payments';
+      const url = editId  
+        ? `${API_BASE_URL}/payments/${editId}`
+        : `${API_BASE_URL}/payments`;
 
       const method = editId ? 'PUT' : 'POST';
       const token = localStorage.getItem('access_token');
@@ -230,7 +232,7 @@ const Payments = () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch(`http://localhost:3000/payments/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/payments/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

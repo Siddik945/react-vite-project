@@ -66,11 +66,13 @@ const Sites = () => {
     resetForm();
   };
 
+  const API_BASE_URL = import.meta.env.VITE_BASE_URL;
+
   const fetchCompanies = async () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const res = await fetch('http://localhost:3000/companies', {
+      const res = await fetch(`${API_BASE_URL}/companies`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -94,7 +96,7 @@ const Sites = () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const res = await fetch('http://localhost:3000/sites', {
+      const res = await fetch(`${API_BASE_URL}/sites`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -137,7 +139,7 @@ const Sites = () => {
     setMessage('');
 
     try {
-      const url = editId ? `http://localhost:3000/sites/${editId}` : 'http://localhost:3000/sites';
+      const url = editId ? `${API_BASE_URL}/sites/${editId}` : `${API_BASE_URL}/sites`;
 
       const method = editId ? 'PUT' : 'POST';
       const token = localStorage.getItem('access_token');
@@ -199,7 +201,7 @@ const Sites = () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch(`http://localhost:3000/sites/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/sites/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

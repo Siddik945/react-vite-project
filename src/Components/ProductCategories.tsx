@@ -48,11 +48,13 @@ const ProductCategories = () => {
     resetForm();
   };
 
+  const API_BASE_URL = import.meta.env.VITE_BASE_URL;
+
   const fetchCategories = async () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('http://localhost:3000/product-categories', {
+      const response = await fetch(`${API_BASE_URL}/product-categories`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -150,7 +152,7 @@ const ProductCategories = () => {
     try {
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch(`http://localhost:3000/product-categories/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/product-categories/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
