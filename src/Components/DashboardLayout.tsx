@@ -49,7 +49,7 @@ const DashboardLayout = () => {
     fetchCompanies();
   }, []);
 
-  console.log(user);
+  // console.log(user);
 
   return (
     <div className="min-h-screen bg-slate-100">

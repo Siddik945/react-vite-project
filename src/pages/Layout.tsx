@@ -148,13 +148,13 @@ export default function Layout() {
           >
             Login
           </button>
-          <button
+          {/* <button
             type="button"
             onClick={() => openModal('register')}
             className="rounded-full border border-emerald-700 px-5 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
           >
             Register
-          </button>
+          </button> */}
         </nav>
       </header>
 
